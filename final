@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Chatbot with Konami Code</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #1a1a1a;
+      margin: 0;
+      padding: 0;
+    }
+    .chat-container {
+      width: 400px;
+      margin: 50px auto;
+      background-color: #1a1a1a;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    }
+    .chat-box {
+      max-height: 300px;
+      overflow-y: scroll;
+      margin-bottom: 20px;
+    }
+    .input-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .input-container button {
+      padding: 10px 20px;
+      background-color: #f1c40f;
+      color: black;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-left: 10px;
+    }
+    .input-container button:hover {
+      background-color: #f39c12;
+    }
+    .input-container input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #f1c40f;
+      border-radius: 5px;
+      background-color: #333;
+      color: white;
+    }
+    .message {
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 5px;
+    }
+    .user-message {
+      background-color: #f1c40f;
+      text-align: right;
+      color: black;
+    }
+    .system-message {
+      background-color: #444;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <div class="chat-container">
+    <div class="chat-box" id="chat-box">
+      <div class="message system-message">
+        <p>Welcome to the AI Chatbot! How can I assist you today?</p>
+      </div>
+    </div>
+    <div class="input-container">
+      <input type="text" id="user-input" placeholder="Type your message..." onkeydown="if(event.key === 'Enter'){sendMessage()}">
+      <button onclick="sendMessage()">Send</button>
+    </div>
+  </div>
+
+  <script>
+    const konamiCode = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
+    let konamiCodeIndex = 0;
+
+    document.addEventListener('keydown', function(event) {
+      if (event.key === konamiCode[konamiCodeIndex]) {
+        konamiCodeIndex++;
+        if (konamiCodeIndex === konamiCode.length) {
+          activateKonamiCode();
+          konamiCodeIndex = 0;
+        }
+      } else {
+        konamiCodeIndex = 0;
+      }
+    });
+
+    function activateKonamiCode() {
+      document.body.style.backgroundColor = '#e74c3c';
+      displayMessage("Konami Code activated! Surprise!", 'system');
+    }
+
+    function sendMessage() {
+      const userInput = document.getElementById("user-input").value;
+      if (userInput.trim() !== "") {
+        displayMessage(userInput, 'user');
+        document.getElementById("user-input").value = '';
+        setTimeout(() => {
+          const aiResponse = generateAIResponse(userInput);
+          displayMessage(aiResponse, 'system');
+        }, 1000);
+      }
+    }
+
+    function displayMessage(message, sender) {
+      const chatBox = document.getElementById("chat-box");
+      const messageDiv = document.createElement("div");
+      messageDiv.classList.add("message", `${sender}-message`);
+      const messageText = document.createElement("p");
+      messageText.textContent = message;
+      messageDiv.appendChild(messageText);
+      chatBox.appendChild(messageDiv);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function generateAIResponse(userInput) {
+      const lowerCaseInput = userInput.toLowerCase();
+      if (lowerCaseInput.includes("hello") || lowerCaseInput.includes("hi")) {
+        return "Hello! How can I assist you today?";
+      } else if (lowerCaseInput.includes("how are you")) {
+        return "I'm just a bot, but I'm doing well, thanks for asking!";
+      } else if (lowerCaseInput.includes("help")) {
+        return "Sure! What can I help you with?";
+      } else {
+        return "I'm not sure how to respond to that. Can you ask something else?";
+      }
+    }
+  </script>
+</body>
+</html>
