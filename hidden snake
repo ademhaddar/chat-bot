@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Plateforme – Snake Secret</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    :root {
+      --bg: #020617;
+      --bg-soft: #020617;
+      --card: #020617;
+      --accent: #38bdf8;
+      --accent-strong: #f97316;
+      --accent-soft: #22c55e;
+      --text: #e5e7eb;
+      --text-muted: #9ca3af;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        sans-serif;
+      background: radial-gradient(circle at top, #1f2937, var(--bg));
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      padding: 1.2rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      border-bottom: 1px solid #1f2937;
+      background: rgba(15, 23, 42, 0.96);
+      backdrop-filter: blur(12px);
+      position: sticky;
+      top: 0;
+      z-index: 5;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .brand-logo {
+      width: 40px;
+      height: 40px;
+      border-radius: 14px;
+      background: radial-gradient(circle at top, #38bdf8, #1d4ed8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 1rem;
+    }
+
+    .brand-text-title {
+      font-size: 1.05rem;
+      font-weight: 600;
+    }
+
+    .brand-text-sub {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    nav a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.9rem;
+      margin-left: 1rem;
+    }
+
+    nav a:hover {
+      color: var(--accent);
+    }
+
+    main {
+      flex: 1;
+      padding: 1.5rem;
+      max-width: 1100px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+      gap: 1.3rem;
+    }
+
+    .card {
+      background: rgba(15, 23, 42, 0.98);
+      border-radius: 1rem;
+      padding: 1rem;
+      border: 1px solid rgba(148, 163, 184, 0.3);
+      box-shadow: 0 20px 40px rgba(15, 23, 42, 0.7);
+    }
+
+    h1 {
+      margin: 0 0 0.4rem;
+      font-size: 1.6rem;
+    }
+
+    h2 {
+      margin-top: 0;
+      font-size: 1.1rem;
+    }
+
+    p {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+    }
+
+    .btn-main {
+      margin-top: 0.8rem;
+      padding: 0.55rem 0.9rem;
+      border-radius: 999px;
+      border: none;
+      background: linear-gradient(135deg, #38bdf8, #22c55e);
+      color: #020617;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      box-shadow: 0 10px 25px rgba(34, 197, 94, 0.4);
+    }
+
+    .features {
+      margin-top: 0.8rem;
+      font-size: 0.9rem;
+    }
+
+    .features li {
+      margin-bottom: 0.2rem;
+    }
+
+    .info-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      font-size: 0.78rem;
+      border-radius: 999px;
+      padding: 0.15rem 0.6rem;
+      border: 1px solid #1f2937;
+      background: #020617;
+      color: var(--text-muted);
+      margin-top: 0.6rem;
+    }
+
+    footer {
+      padding: 0.5rem 1rem;
+      text-align: center;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      border-top: 1px solid #1f2937;
+      background: #020617;
+    }
+
+    /* Petites étoiles/easter egg text discret */
+    .tiny-hint {
+      font-size: 0.7rem;
+      color: #4b5563;
+      text-align: right;
+      margin-top: 0.3rem;
+      user-select: none;
+    }
+
+    /* =========================
+       OVERLAY SNAKE SECRET
+    ========================== */
+    #snake-overlay {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at top, #0f172a, #020617);
+      display: none; /* affiché en JS */
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+    }
+
+    #snake-overlay.active {
+      display: flex;
+    }
+
+    .snake-modal {
+      width: min(900px, 100% - 2rem);
+      background: radial-gradient(circle at top, #1e293b, #020617);
+      border-radius: 1.2rem;
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.9);
+      padding: 1rem;
+      color: var(--text);
+      display: grid;
+      grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+      gap: 1rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .snake-modal::before {
+      content: "";
+      position: absolute;
+      inset: -50%;
+      background: conic-gradient(
+        from 90deg,
+        rgba(56, 189, 248, 0.05),
+        transparent,
+        rgba(249, 115, 22, 0.06),
+        transparent
+      );
+      filter: blur(30px);
+      opacity: 0.7;
+      pointer-events: none;
+    }
+
+    .snake-left,
+    .snake-right {
+      position: relative;
+      z-index: 1;
+    }
+
+    .snake-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 0.4rem;
+      margin-bottom: 0.4rem;
+    }
+
+    .snake-title {
+      font-size: 1.2rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+    }
+
+    .snake-sub {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .snake-close-btn {
+      border-radius: 999px;
+      border: 1px solid #1f2937;
+      padding: 0.15rem 0.55rem;
+      font-size: 0.75rem;
+      background: rgba(15, 23, 42, 0.9);
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+
+    .snake-scoreboard {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.9rem;
+      margin-bottom: 0.4rem;
+    }
+
+    .score-badge {
+      border-radius: 0.6rem;
+      padding: 0.2rem 0.6rem;
+      background: rgba(34, 197, 94, 0.1);
+      border: 1px solid rgba(34, 197, 94, 0.7);
+      color: #bbf7d0;
+      font-size: 0.8rem;
+    }
+
+    .snake-info {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 0.3rem;
+    }
+
+    /* Canvas container (néon) */
+    .snake-canvas-wrap {
+      margin-top: 0.4rem;
+      background: radial-gradient(circle at center, #020617, #000);
+      border-radius: 1rem;
+      padding: 0.5rem;
+      box-shadow: 0 0 25px rgba(56, 189, 248, 0.35);
+      border: 1px solid rgba(56, 189, 248, 0.6);
+    }
+
+    canvas#snake-canvas {
+      display: block;
+      margin: 0 auto;
+      border-radius: 0.7rem;
+      background: repeating-linear-gradient(
+          90deg,
+          rgba(15, 23, 42, 0.9) 0,
+          rgba(15, 23, 42, 0.9) 20px,
+          rgba(17, 24, 39, 0.9) 20px,
+          rgba(17, 24, 39, 0.9) 40px
+        ),
+        repeating-linear-gradient(
+          0deg,
+          rgba(15, 23, 42, 0.9) 0,
+          rgba(15, 23, 42, 0.9) 20px,
+          rgba(17, 24, 39, 0.9) 20px,
+          rgba(17, 24, 39, 0.9) 40px
+        );
+      box-shadow:
+        0 0 10px rgba(8, 47, 73, 0.9),
+        0 0 30px rgba(37, 99, 235, 0.7);
+    }
+
+    .snake-right h3 {
+      margin-top: 0;
+      font-size: 1rem;
+    }
+
+    .snake-controls {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .snake-controls ul {
+      padding-left: 1.1rem;
+      margin: 0.3rem 0 0.6rem;
+    }
+
+    .snake-controls li {
+      margin-bottom: 0.15rem;
+    }
+
+    .snake-tagline {
+      font-size: 0.8rem;
+      border-radius: 0.7rem;
+      padding: 0.4rem 0.6rem;
+      background: rgba(59, 130, 246, 0.1);
+      border: 1px solid rgba(59, 130, 246, 0.7);
+      color: #bfdbfe;
+    }
+
+    .snake-badges {
+      margin-top: 0.6rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.3rem;
+      font-size: 0.75rem;
+    }
+
+    .snake-pill {
+      border-radius: 999px;
+      padding: 0.15rem 0.6rem;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid #1f2937;
+    }
+
+    /* Game over overlay (small badge) */
+    .game-over-banner {
+      position: absolute;
+      top: 0.5rem;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 0.25rem 0.7rem;
+      font-size: 0.8rem;
+      border-radius: 999px;
+      background: rgba(248, 113, 113, 0.15);
+      border: 1px solid rgba(248, 113, 113, 0.7);
+      color: #fecaca;
+      display: none;
+      z-index: 2;
+    }
+
+    .game-over-banner.active {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      main {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      .snake-modal {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    @media (max-width: 600px) {
+      header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      nav {
+        align-self: stretch;
+        display: flex;
+        justify-content: flex-start;
+        flex-wrap: wrap;
+      }
+
+      #snake-overlay {
+        padding: 0.5rem;
+      }
+
+      .snake-modal {
+        padding: 0.7rem;
+      }
+
+      canvas#snake-canvas {
+        width: 260px;
+        height: 260px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Contenu normal du site -->
+  <header>
+    <div class="brand">
+      <div class="brand-logo">NX</div>
+      <div>
+        <div class="brand-text-title">Nexus Platform</div>
+        <div class="brand-text-sub">Portail interactif – Nuit de l'Info</div>
+      </div>
+    </div>
+    <nav aria-label="Navigation principale">
+      <a href="#">Accueil</a>
+      <a href="#">Projets</a>
+      <a href="#">Équipe</a>
+      <a href="#">Contact</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="card">
+      <h1>Bienvenue sur la plateforme du Nexus</h1>
+      <p>
+        Ce site présente votre projet, vos défis, vos partenaires… et peut-être un
+        secret caché pour les explorateurs les plus curieux.
+      </p>
+      <button class="btn-main">Découvrir les fonctionnalités</button>
+      <ul class="features">
+        <li>Suivi des équipes et des scores</li>
+        <li>Interface moderne et responsive</li>
+        <li>Intégration de défis et de contenus interactifs</li>
+      </ul>
+      <div class="info-chip">
+        💡 Psst… certains joueurs parlent d’un mini-jeu caché dans le Nexus.
+      </div>
+      <div class="tiny-hint">
+        ↑ ↑ ↓ ↓ ← → ← → B A
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Partenaires & Univers</h2>
+      <p>
+        Connectez vos utilisateurs à un univers ludique, avec des animations, des
+        classements, et des surprises. L’objectif : transformer votre site en
+        expérience de jeu tout en restant utile, clair et accessible.
+      </p>
+      <p>
+        Idée bonus pour la Nuit de l’Info : annoncer officiellement le site… mais
+        laisser à quelques personnes le plaisir de découvrir le jeu Snake caché.
+      </p>
+    </section>
+  </main>
+
+  <footer>
+    Nexus Platform – Prototype avec jeu Snake caché. Nuit de l'Info.
+  </footer>
+
+  <!-- =========================
+       OVERLAY SECRET SNAKE
+  ========================== -->
+  <div id="snake-overlay" aria-hidden="true">
+    <div class="snake-modal">
+      <div class="game-over-banner" id="game-over-banner">
+        💀 Game over – Appuie sur <strong>ESPACE</strong> pour rejouer
+      </div>
+      <div class="snake-left">
+        <div class="snake-header">
+          <div>
+            <div class="snake-title">SNAKE // NEON.PROTOCOL</div>
+            <div class="snake-sub">Zone secrète du Nexus – Mini-jeu caché</div>
+          </div>
+          <button class="snake-close-btn" id="snake-close-btn">Quitter ✕</button>
+        </div>
+        <div class="snake-scoreboard">
+          <div>Score : <span id="score-value">0</span></div>
+          <div>Record : <span id="highscore-value">0</span></div>
+          <div class="score-badge">Mode Arcade</div>
+        </div>
+        <div class="snake-canvas-wrap">
+          <canvas id="snake-canvas" width="320" height="320"></canvas>
+        </div>
+        <div class="snake-info">
+          Astuce : plus tu manges de "données" néon, plus le serpent s’allonge… mais
+          le Nexus ne pardonne pas les collisions.
+        </div>
+      </div>
+      <div class="snake-right">
+        <h3>Commandes & Légende</h3>
+        <div class="snake-controls">
+          <ul>
+            <li>⬆️ ⬇️ ⬅️ ➡️ : déplacer le serpent</li>
+            <li>🅿️ Touche <strong>P</strong> : pause / reprise</li>
+            <li>⏯️ Touche <strong>ESPACE</strong> : rejouer après un Game Over</li>
+          </ul>
+        </div>
+        <div class="snake-tagline">
+          Ce serpent ne mange pas des pommes, mais des <strong>paquets de données néon</strong>.
+          Chaque paquet renforce le Nexus… ou le fait exploser si tu perds le contrôle.
+        </div>
+        <div class="snake-badges">
+          <span class="snake-pill">🌈 Effets néon</span>
+          <span class="snake-pill">🧪 Jeu caché</span>
+          <span class="snake-pill">🎮 Originalité</span>
+          <span class="snake-pill">🔥 Easter Egg validé</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================
+       SCRIPT SNAKE + KONAMI
+  ========================== -->
+  <script>
+    // --- KONAMI CODE (méthode d'activation secrète) ---
+    const konamiCode = [
+      "ArrowUp",
+      "ArrowUp",
+      "ArrowDown",
+      "ArrowDown",
+      "ArrowLeft",
+      "ArrowRight",
+      "ArrowLeft",
+      "ArrowRight",
+      "b",
+      "a"
+    ];
+    let konamiIndex = 0;
+
+    const snakeOverlay = document.getElementById("snake-overlay");
+    const closeBtn = document.getElementById("snake-close-btn");
+    const scoreSpan = document.getElementById("score-value");
+    const highscoreSpan = document.getElementById("highscore-value");
+    const gameOverBanner = document.getElementById("game-over-banner");
+
+    let highscore = 0;
+
+    function openSnake() {
+      snakeOverlay.classList.add("active");
+      snakeOverlay.setAttribute("aria-hidden", "false");
+      resetGame();
+    }
+
+    function closeSnake() {
+      snakeOverlay.classList.remove("active");
+      snakeOverlay.setAttribute("aria-hidden", "true");
+    }
+
+    document.addEventListener("keydown", (e) => {
+      const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+      if (key === konamiCode[konamiIndex]) {
+        konamiIndex++;
+        if (konamiIndex === konamiCode.length) {
+          konamiIndex = 0;
+          openSnake();
+        }
+      } else {
+        konamiIndex = 0;
+      }
+    });
+
+    closeBtn.addEventListener("click", closeSnake);
+
+    // Fermer en cliquant à l'extérieur
+    snakeOverlay.addEventListener("click", (e) => {
+      if (e.target === snakeOverlay) {
+        closeSnake();
+      }
+    });
+
+    // --- LOGIQUE DU JEU SNAKE ---
+    const canvas = document.getElementById("snake-canvas");
+    const ctx = canvas.getContext("2d");
+
+    const gridSize = 20;      // grille 20x20
+    const tileSize = canvas.width / gridSize;
+
+    let snake;
+    let direction;
+    let nextDirection;
+    let food;
+    let score;
+    let gameLoopInterval = null;
+    let speed = 120;
+    let isPaused = false;
+    let isGameOver = false;
+
+    function initSnake() {
+      snake = [
+        { x: 10, y: 10 },
+        { x: 9, y: 10 },
+        { x: 8, y: 10 }
+      ];
+      direction = "RIGHT";
+      nextDirection = "RIGHT";
+      score = 0;
+      scoreSpan.textContent = score;
+      isPaused = false;
+      isGameOver = false;
+      gameOverBanner.classList.remove("active");
+    }
+
+    function randomFood() {
+      let newFood;
+      do {
+        newFood = {
+          x: Math.floor(Math.random() * gridSize),
+          y: Math.floor(Math.random() * gridSize)
+        };
+      } while (snake.some(seg => seg.x === newFood.x && seg.y === newFood.y));
+      food = newFood;
+    }
+
+    function resetGame() {
+      initSnake();
+      randomFood();
+      if (gameLoopInterval) {
+        clearInterval(gameLoopInterval);
+      }
+      gameLoopInterval = setInterval(gameLoop, speed);
+      draw();
+    }
+
+    function setDirection(dir) {
+      // Empêche de faire demi-tour directement
+      if (dir === "LEFT" && direction !== "RIGHT") nextDirection = "LEFT";
+      if (dir === "RIGHT" && direction !== "LEFT") nextDirection = "RIGHT";
+      if (dir === "UP" && direction !== "DOWN") nextDirection = "UP";
+      if (dir === "DOWN" && direction !== "UP") nextDirection = "DOWN";
+    }
+
+    document.addEventListener("keydown", (e) => {
+      if (!snakeOverlay.classList.contains("active")) return;
+
+      if (e.key === "ArrowUp") setDirection("UP");
+      if (e.key === "ArrowDown") setDirection("DOWN");
+      if (e.key === "ArrowLeft") setDirection("LEFT");
+      if (e.key === "ArrowRight") setDirection("RIGHT");
+
+      if (e.key === "p" || e.key === "P") {
+        isPaused = !isPaused;
+      }
+
+      if (e.key === " " && isGameOver) {
+        // Espace pour rejouer
+        resetGame();
+      }
+    });
+
+    function gameOver() {
+      isGameOver = true;
+      gameOverBanner.classList.add("active");
+      if (gameLoopInterval) {
+        clearInterval(gameLoopInterval);
+      }
+    }
+
+    function gameLoop() {
+      if (isPaused || isGameOver) return;
+
+      direction = nextDirection;
+      const head = { ...snake[0] };
+
+      if (direction === "LEFT") head.x--;
+      if (direction === "RIGHT") head.x++;
+      if (direction === "UP") head.y--;
+      if (direction === "DOWN") head.y++;
+
+      // collisions mur
+      if (head.x < 0 || head.x >= gridSize || head.y < 0 || head.y >= gridSize) {
+        gameOver();
+        return;
+      }
+
+      // collisions corps
+      if (snake.some(seg => seg.x === head.x && seg.y === head.y)) {
+        gameOver();
+        return;
+      }
+
+      // manger la nourriture
+      snake.unshift(head);
+      if (head.x === food.x && head.y === food.y) {
+        score += 10;
+        scoreSpan.textContent = score;
+        if (score > highscore) {
+          highscore = score;
+          highscoreSpan.textContent = highscore;
+        }
+        randomFood();
+      } else {
+        snake.pop();
+      }
+
+      draw();
+    }
+
+    function drawGrid() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      // Légère grille néon
+      ctx.strokeStyle = "rgba(15, 23, 42, 0.8)";
+      ctx.lineWidth = 1;
+      for (let i = 0; i <= gridSize; i++) {
+        // verticales
+        ctx.beginPath();
+        ctx.moveTo(i * tileSize, 0);
+        ctx.lineTo(i * tileSize, canvas.height);
+        ctx.stroke();
+        // horizontales
+        ctx.beginPath();
+        ctx.moveTo(0, i * tileSize);
+        ctx.lineTo(canvas.width, i * tileSize);
+        ctx.stroke();
+      }
+    }
+
+    function drawSnake() {
+      for (let i = 0; i < snake.length; i++) {
+        const seg = snake[i];
+        const x = seg.x * tileSize;
+        const y = seg.y * tileSize;
+
+        // corps
+        const gradient = ctx.createLinearGradient(x, y, x + tileSize, y + tileSize);
+        gradient.addColorStop(0, "#38bdf8");
+        gradient.addColorStop(1, "#f97316");
+        ctx.fillStyle = gradient;
+        ctx.fillRect(
+          x + 1,
+          y + 1,
+          tileSize - 2,
+          tileSize - 2
+        );
+
+        // contour
+        ctx.strokeStyle = "rgba(15, 23, 42, 0.9)";
+        ctx.lineWidth = 1;
+        ctx.strokeRect(
+          x + 1,
+          y + 1,
+          tileSize - 2,
+          tileSize - 2
+        );
+
+        // tête avec "yeux"
+        if (i === 0) {
+          ctx.fillStyle = "#020617";
+          const eyeSize = tileSize / 6;
+          if (direction === "LEFT" || direction === "RIGHT") {
+            ctx.fillRect(x + tileSize / 4, y + tileSize / 4, eyeSize, eyeSize);
+            ctx.fillRect(
+              x + tileSize / 4,
+              y + (tileSize / 4) * 3 - eyeSize,
+              eyeSize,
+              eyeSize
+            );
+          } else {
+            ctx.fillRect(x + tileSize / 4, y + tileSize / 4, eyeSize, eyeSize);
+            ctx.fillRect(
+              x + (tileSize / 4) * 3 - eyeSize,
+              y + tileSize / 4,
+              eyeSize,
+              eyeSize
+            );
+          }
+        }
+      }
+    }
+
+    function drawFood() {
+      const x = food.x * tileSize;
+      const y = food.y * tileSize;
+      const radius = tileSize / 2.6;
+      const centerX = x + tileSize / 2;
+      const centerY = y + tileSize / 2;
+
+      const gradient = ctx.createRadialGradient(
+        centerX,
+        centerY,
+        radius / 4,
+        centerX,
+        centerY,
+        radius
+      );
+      gradient.addColorStop(0, "#f97316");
+      gradient.addColorStop(1, "#fb7185");
+
+      ctx.fillStyle = gradient;
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+      ctx.fill();
+
+      // petit halo
+      ctx.strokeStyle = "rgba(249, 115, 22, 0.6)";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+
+    function draw() {
+      drawGrid();
+      drawSnake();
+      drawFood();
+    }
+  </script>
+</body>
+</html>
